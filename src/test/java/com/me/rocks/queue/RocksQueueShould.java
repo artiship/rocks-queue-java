@@ -8,15 +8,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class RocksQueueShould extends RocksShould {
     private static final Logger log = LoggerFactory.getLogger(RocksQueueShould.class);
 
     private RocksStore rocksStore;
-    private String queueName = "queue_name";
 
     @Before public void
     initialize() {
@@ -30,8 +27,10 @@ public class RocksQueueShould extends RocksShould {
     should_queue_init_head_and_tail() {
         RocksQueue queue = rocksStore.createQueue(generateQueueName());
 
-        assertThat(queue.getHead(), is(0L));
-        assertThat(queue.getTail(), is(0L));
+        assertThat(queue.getHeadIndex(), is(1L));
+        assertThat(queue.getTailIndex(), is(0L));
+        assertTrue(queue.isEmpty());
+        assertThat(queue.approximateSize(), is(0L));
     }
 
     @Test public void
@@ -42,8 +41,8 @@ public class RocksQueueShould extends RocksShould {
 
         queue.enqueue(something);
 
-        assertThat(queue.getHead(), is(0L));
-        assertThat(queue.getTail(), is(1L));
+        assertThat(queue.getHeadIndex(), is(1L));
+        assertThat(queue.getTailIndex(), is(1L));
 
         queue.close();
     }
@@ -60,21 +59,23 @@ public class RocksQueueShould extends RocksShould {
         queue.enqueue(v2);
         assertThat(queue.approximateSize(), is(2L));
 
-        assertEquals(queue.getHead(), 0);
-        assertEquals(queue.getTail(), 2);
+        assertEquals(queue.getHeadIndex(), 1);
+        assertEquals(queue.getTailIndex(), 2);
 
         QueueItem res1 = queue.dequeue();
         assertArrayEquals(v1, res1.getValue());
+        assertEquals(queue.getHeadIndex(), 2);
         assertThat(queue.approximateSize(), is(1L));
 
         QueueItem res2 = queue.dequeue();
         assertArrayEquals(v2, res2.getValue());
         assertThat(queue.approximateSize(), is(0L));
+        assertThat(queue.getSize(), is(0L));
 
-        assertEquals(queue.getTail(), 2);
-        assertEquals(queue.getHead(), 2);
+        assertEquals(queue.getTailIndex(), 2);
+        assertEquals(queue.getHeadIndex(), 2);
 
-        log.info("queue tail is {} and head is {}", queue.getHead(), queue.getTail());
+        log.info("queue tail is {} and head is {}", queue.getHeadIndex(), queue.getTailIndex());
     }
 
     @Test public void
@@ -92,16 +93,21 @@ public class RocksQueueShould extends RocksShould {
         QueueItem consume = queue.consume();
         assertEquals(consume.getKey(), id_1);
         log.info("Consumes value = {}", Bytes.bytesToString(consume.getValue()));
-        assertArrayEquals(consume.getValue(), v2);
+        assertArrayEquals(consume.getValue(), v1);
 
         //multiple times consumes will always return the head
         QueueItem consume2 = queue.consume();
         assertEquals(consume2.getKey(), id_1);
-        assertArrayEquals(consume2.getValue(), v2);
+        assertArrayEquals(consume2.getValue(), v1);
 
-        assertEquals(queue.getTail(), 2);
-        assertEquals(queue.getHead(), 0);
+        assertEquals(queue.getTailIndex(), 2);
+        assertEquals(queue.getHeadIndex(), 1);
         assertEquals(queue.approximateSize(), 2);
+    }
+
+    @Test public void
+    when_poll_queue_should_reove_head() {
+
     }
 
     @After public void

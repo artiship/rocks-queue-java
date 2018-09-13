@@ -2,6 +2,7 @@ package com.me.rocks.queue;
 
 import com.me.rocks.queue.util.Bytes;
 import org.rocksdb.ColumnFamilyHandle;
+import org.rocksdb.RocksDBException;
 import org.rocksdb.RocksIterator;
 import org.rocksdb.WriteBatch;
 import org.slf4j.Logger;
@@ -33,8 +34,8 @@ public class RocksQueue {
         this.cfHandle = store.createColumnFamilyHandle(queueName);
         this.indexCfHandle = store.createColumnFamilyHandle(getIndexColumnFamilyName(queueName));
 
-        this.tail.set(getIndexId(TAIL));
-        this.head.set(getIndexId(HEAD));
+        this.tail.set(getIndexId(TAIL, 0));
+        this.head.set(getIndexId(HEAD, 1));
 
         this.tailIterator = store.newIteratorCF(cfHandle);
     }
@@ -47,30 +48,30 @@ public class RocksQueue {
     }
 
     public boolean isEmpty() {
-        return tail.get() <= head.get();
+        return tail.get() == 0 ? true: tail.get() <= head.get();
     }
 
     public long getSize() {
-        return tail.get() - head.get();
+        return tail.get() - head.get() + 1;
     }
 
-    public long getHead() {
+    public long getHeadIndex() {
         return head.get();
     }
 
-    public long getTail() {
+    public long getTailIndex() {
         return tail.get();
     }
 
     public long approximateSize() {
-        return getIndexId(TAIL) - getIndexId(HEAD);
+        return getIndexId(TAIL, 0) - getIndexId(HEAD, 1) + 1;
     }
 
-    private long getIndexId(byte[] key) {
+    private long getIndexId(byte[] key, long defaultValue) {
         byte[] value = store.getCF(key, indexCfHandle);
 
         if(value == null) {
-            return 0;
+            return defaultValue;
         }
 
         return Bytes.byteToLong(value);
@@ -84,6 +85,10 @@ public class RocksQueue {
             writeBatch.put(cfHandle, indexId, value);
             writeBatch.merge(indexCfHandle, TAIL, ONE);
             store.write(writeBatch);
+        } catch (RocksDBException e) {
+            tail.decrementAndGet();
+            log.error("Enqueue {} fails, {}", id, e);
+            return -1;
         }
 
         return id;
@@ -95,7 +100,7 @@ public class RocksQueue {
      */
     public QueueItem dequeue() {
         QueueItem item = consume();
-        removeHead(item.getKey());
+        removeHead();
         return item;
     }
 
@@ -109,11 +114,9 @@ public class RocksQueue {
             return null;
         }
 
-        if(!tailIterator.isValid()) {
-            log.debug("Seek to head from {}", head.get());
-            byte[] sid = Bytes.longToByte(head.get());
-            tailIterator.seek(sid);
-        }
+        log.debug("Seek to head from {}", head.get());
+        byte[] sid = Bytes.longToByte(head.get());
+        tailIterator.seek(sid);
 
         if(!tailIterator.isValid()) {
             return null;
@@ -124,23 +127,26 @@ public class RocksQueue {
         QueueItem item = new QueueItem();
         item.setKey(id);
         item.setValue(tailIterator.value());
-        tailIterator.next();
 
         return item;
     }
 
     /**
      * remove the head from queue
-     * @param headId
      * @return
      */
-    public void removeHead(long headId) {
+    public void removeHead() {
+        if(this.getSize() <= 0) {
+            return;
+        }
+
         try(final WriteBatch writeBatch = new WriteBatch()) {
-            writeBatch.remove(cfHandle, Bytes.longToByte(headId));
+            writeBatch.remove(cfHandle, Bytes.longToByte(head.get()));
             writeBatch.merge(indexCfHandle, HEAD, ONE);
             store.write(writeBatch);
-
             head.incrementAndGet();
+        } catch (RocksDBException e) {
+            e.printStackTrace();
         }
     }
 

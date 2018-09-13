@@ -177,11 +177,7 @@ public class RocksStore {
         return value;
     }
 
-    public void write(WriteBatch writeBatch) {
-        try {
-            db.write(this.writeOptions, writeBatch);
-        } catch (RocksDBException e) {
-            log.error("Write batch into rocks db fails, {}", e);
-        }
+    public void write(WriteBatch writeBatch) throws RocksDBException {
+        db.write(this.writeOptions, writeBatch);
     }
 }

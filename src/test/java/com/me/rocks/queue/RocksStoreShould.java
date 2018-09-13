@@ -31,8 +31,8 @@ public class RocksStoreShould extends RocksShould {
     @Test public void
     should_newly_created_queue_size_approximate_to_zero() {
         assertNotNull(queue);
-        assertThat(queue.getHead(), is(0L));
-        assertThat(queue.getTail(), is(0L));
+        assertThat(queue.getHeadIndex(), is(1L));
+        assertThat(queue.getTailIndex(), is(0L));
         assertThat(queue.approximateSize(), is(0L));
     }
 
