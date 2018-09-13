@@ -37,7 +37,7 @@ public class StoreOptions {
         if (this.writeBufferSize <= 0) this.writeBufferSize = 64 * 1024 * 1024;
         if (this.writeBufferNumber <= 0) this.writeBufferNumber = 4;
         if (this.parallel <= 0) this.parallel = Math.max(Runtime.getRuntime().availableProcessors(), 2);
-        if (this.compression == null) this.compression = CompressionType.LZ4HC_COMPRESSION;
+//        if (this.compression == null) this.compression = CompressionType.;
 
         this.disableTailing = false;
         this.disableWAL = false;

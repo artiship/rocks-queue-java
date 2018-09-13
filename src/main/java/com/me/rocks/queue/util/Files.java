@@ -5,22 +5,29 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class Utils {
-    private static final Logger log = LoggerFactory.getLogger(Utils.class);
+public class Files {
+    private static final Logger log = LoggerFactory.getLogger(Files.class);
 
     /**
      * Recursively delete a folder
      * @param directoryToBeDeleted
      * @return
      */
-    public static boolean deleteDirectory(File directoryToBeDeleted) {
-        File[] allContents = directoryToBeDeleted.listFiles();
+    public static boolean deleteDirectory(String directoryToBeDeleted) {
+        File fd = new File(directoryToBeDeleted);
+
+        if(!fd.exists()) {
+            log.warn("The directory {} want to be deleted is not exists", directoryToBeDeleted);
+            return false;
+        }
+
+        File[] allContents = fd.listFiles();
         if (allContents != null) {
             for (File file : allContents) {
-                deleteDirectory(file);
+                deleteDirectory(file.getAbsolutePath());
             }
         }
-        return directoryToBeDeleted.delete();
+        return fd.delete();
     }
 
     public static void mkdirIfNotExists(String path) {
@@ -31,10 +38,4 @@ public class Utils {
             }
         }
     }
-
-    public static boolean nullOrEmpty(String directory) {
-        return directory == null || directory.trim().isEmpty();
-    }
-
-
 }

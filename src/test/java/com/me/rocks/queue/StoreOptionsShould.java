@@ -24,7 +24,6 @@ public class StoreOptionsShould {
         assertEquals(options.getWriteBufferSize(), 64 * 1024 * 1024);
         assertEquals(options.getWriteBufferNumber(), 4);
         assertEquals(options.getParallel(), Math.max(Runtime.getRuntime().availableProcessors(), 2));
-        assertEquals(options.getCompression(), CompressionType.LZ4HC_COMPRESSION);
         assertEquals(options.isDisableTailing(), false);
         assertEquals(options.isDisableWAL(), false);
         assertEquals(options.isWriteLogSync(), true);

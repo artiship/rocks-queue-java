@@ -1,6 +1,6 @@
 package com.me.rocks.queue;
 
-import com.me.rocks.queue.util.ByteConversionHelper;
+import com.me.rocks.queue.util.Bytes;
 import org.rocksdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ final public class RocksDBFactory {
         static {
             RocksDB.loadLibrary();
         }
-        private static final byte[] byteArrayOne = ByteConversionHelper.longToByte(1);
+        private static final byte[] byteArrayOne = Bytes.longToByte(1);
 
         public RocksDBStore(final String name, final StoreOptions opts) {
             cfOpts = new ColumnFamilyOptions()

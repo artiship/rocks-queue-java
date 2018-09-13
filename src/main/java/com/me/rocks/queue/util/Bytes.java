@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
-public class ByteConversionHelper {
+public class Bytes {
     /**
      * Transforms a long value to the platform-specific
      * byte representation.
@@ -56,6 +56,6 @@ public class ByteConversionHelper {
     /**
      * Utility constructor
      */
-    private ByteConversionHelper() {
+    private Bytes() {
     }
 }

@@ -1,7 +1,8 @@
 package com.me.rocks.queue;
 
-import com.me.rocks.queue.util.ByteConversionHelper;
-import com.me.rocks.queue.util.Utils;
+import com.me.rocks.queue.util.Bytes;
+import com.me.rocks.queue.util.Files;
+import com.me.rocks.queue.util.Strings;
 import org.rocksdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +22,14 @@ public class RocksStore {
     private final ArrayList<ColumnFamilyHandle> cfHandles;
     private final ReadOptions readOptions;
     private final WriteOptions writeOptions;
-    private RocksDB db;
-
+    private final RocksDB db;
 
     static {
         RocksDB.loadLibrary();
     }
 
     public RocksStore(StoreOptions options) {
-        if(Utils.nullOrEmpty(options.getDirectory())) {
+        if(Strings.nullOrEmpty(options.getDirectory())) {
             throw new RuntimeException("Empty directory of store options");
         }
 
@@ -42,9 +42,16 @@ public class RocksStore {
         this.cfHandles = new ArrayList<ColumnFamilyHandle>();
         this.queues = new HashMap<String, RocksQueue>();
 
-        Utils.mkdirIfNotExists(directory);
+        this.readOptions = new ReadOptions()
+                .setFillCache(false)
+                .setTailing(!options.isDisableTailing());
+        this.writeOptions = new WriteOptions()
+                .setDisableWAL(options.isDisableWAL())
+                .setSync(options.isWriteLogSync());
 
-        dbOptions = new DBOptions()
+        Files.mkdirIfNotExists(directory);
+
+        this.dbOptions = new DBOptions()
                 .setCreateIfMissing(true)
                 .setIncreaseParallelism(options.getParallel())
                 .setCreateMissingColumnFamilies(true)
@@ -54,7 +61,7 @@ public class RocksStore {
                 .setBlockCacheSize(options.getMemorySize())
                 .setFilter(new BloomFilter(10));
 
-        cfOpts = new ColumnFamilyOptions()
+        this.cfOpts = new ColumnFamilyOptions()
                 .optimizeUniversalStyleCompaction()
                 .setMergeOperatorName("uint64add")
                 .setMaxSuccessiveMerges(64)
@@ -66,40 +73,42 @@ public class RocksStore {
                 .setNumLevels(4)
                 .setMaxBytesForLevelBase(512 * 1024 * 1024)
                 .setMaxBytesForLevelMultiplier(8)
-                .setCompressionType(options.getCompression())
                 .setTableFormatConfig(blockBasedTableConfig)
                 .setMemtablePrefixBloomSizeRatio(0.1);
+
+        if(options.getCompression() != null) {
+            cfOpts.setCompressionType(options.getCompression());
+        }
+
+        db = openRocksDB();
+    }
+
+    private RocksDB openRocksDB() {
+        RocksDB rocksDB;
 
         final List<ColumnFamilyHandle> columnFamilyHandleList =
                 new ArrayList<>();
 
-        /*List<byte[]> cfNames = null;
-        try {
-            cfNames = RocksDB.listColumnFamilies(, this.directory);
-        } catch (RocksDBException e) {
-            log.error("Failed to collect the column family names, {}", e);
-        }
-
-        log.debug("Got column names for the existing db, ", cfNames);*/
-
         final List<ColumnFamilyDescriptor> cfDescriptors = Arrays.asList(
-                new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOpts),
-                new ColumnFamilyDescriptor("head".getBytes(), cfOpts),
-                new ColumnFamilyDescriptor("tail".getBytes(), cfOpts)
+                new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY, cfOpts)
         );
 
         try {
-            db = RocksDB.open(dbOptions, directory, cfDescriptors, columnFamilyHandleList);
+            rocksDB = RocksDB.open(dbOptions, directory, cfDescriptors, columnFamilyHandleList);
         } catch (RocksDBException e) {
-            log.error("failed to open rocks database, {}", e);
+            log.error("Failed to open rocks database on {}, {}", directory, e);
+            log.info("Try to remove rocks db directory {}", directory);
+            Files.deleteDirectory(directory);
+            try {
+                log.info("Try to create rocks db at {} again from scratch", directory);
+                rocksDB = RocksDB.open(dbOptions, directory, cfDescriptors, columnFamilyHandleList);
+            } catch (RocksDBException e1) {
+                log.error("Failed to create rocks db again at {}, {}", directory, e);
+                throw new RuntimeException("Failed to create rocks db again.");
+            }
         }
 
-        readOptions = new ReadOptions()
-                .setFillCache(false)
-                .setTailing(!options.isDisableTailing());
-        writeOptions = new WriteOptions()
-                .setDisableWAL(options.isDisableWAL())
-                .setSync(options.isWriteLogSync());
+        return rocksDB;
     }
 
     public void close() {
@@ -112,22 +121,38 @@ public class RocksStore {
             handle.close();
         }
 
+        for (RocksQueue rocksQueue: queues.values()) {
+            if(rocksQueue != null) {
+                rocksQueue.close();
+            }
+        }
+
         db.close();
     }
 
-    public RocksQueue createQueue(String queueName) {
-        ColumnFamilyHandle cfHandle = cfHandles.get(0);
+    public RocksQueue createQueue(final String queueName) {
+        if(Strings.nullOrEmpty(queueName)){
+            throw new IllegalArgumentException("Create rocks queue name can't not be null or empty");
+        }
 
-        return new RocksQueue(queueName, this, useTailing);
+        if(queues.containsKey(queueName)) {
+            return queues.get(queueName);
+        }
+
+        RocksQueue queue = new RocksQueue(queueName, this);
+
+        queues.put(queueName, queue);
+
+        return queue;
     }
 
     public ColumnFamilyHandle createColumnFamilyHandle(String cfName) {
-        if(Utils.nullOrEmpty(cfName)) {
+        if(Strings.nullOrEmpty(cfName)) {
             return null;
         }
 
         ColumnFamilyHandle handle = null;
-        ColumnFamilyDescriptor cfDescriptor = new ColumnFamilyDescriptor(ByteConversionHelper.stringToBytes(cfName),
+        final ColumnFamilyDescriptor cfDescriptor = new ColumnFamilyDescriptor(Bytes.stringToBytes(cfName),
                 cfOpts);
         try {
             handle = db.createColumnFamily(cfDescriptor);

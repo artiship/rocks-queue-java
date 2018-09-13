@@ -1,31 +1,25 @@
 package com.me.rocks.queue;
 
-import com.me.rocks.queue.util.ByteConversionHelper;
-import com.me.rocks.queue.util.Utils;
-import org.junit.After;
+import com.me.rocks.queue.util.Bytes;
 import org.junit.Before;
 import org.junit.Test;
 import org.rocksdb.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.me.rocks.queue.util.ByteConversionHelper.byteToLong;
-import static com.me.rocks.queue.util.ByteConversionHelper.longToByte;
+import static com.me.rocks.queue.util.Bytes.byteToLong;
+import static com.me.rocks.queue.util.Bytes.longToByte;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 
-public class RocksDBShould {
+public class RocksDBShould extends RocksShould {
 
     private static final Logger logger = LoggerFactory.getLogger(RocksDBShould.class);
-
-    private static final String DATABASE_1 = "rocks_db_1";
-    private static final String DATABASE_2 = "rocks_db_2";
 
     private static final String QUEUE_NAME = "queue_name";
     private static final String INDEX_NAME = "_" + QUEUE_NAME;
@@ -53,7 +47,7 @@ public class RocksDBShould {
         byte[] value = "value".getBytes(UTF_8);
 
         try(final Options options = new Options().setCreateIfMissing(true)) {
-            try(final RocksDB db = RocksDB.open(options, DATABASE_1)) {
+            try(final RocksDB db = RocksDB.open(options, generateDBName())) {
                 db.put(key, value);
                 assertThat(db.get(key), is(value));
                 db.delete(key);
@@ -68,7 +62,7 @@ public class RocksDBShould {
         byte[] value = "value".getBytes(UTF_8);
 
         try(final Options options = new Options().setCreateIfMissing(true)) {
-            try(final RocksDB db = RocksDB.open(options, DATABASE_1)) {
+            try(final RocksDB db = RocksDB.open(options, generateDBName())) {
                 db.put(key, value);
 
                 RocksIterator it = db.newIterator();
@@ -102,7 +96,7 @@ public class RocksDBShould {
                     new ArrayList<>();
 
             try (final DBOptions options = new DBOptions().setCreateIfMissing(true).setCreateMissingColumnFamilies(true);
-                 final RocksDB db = RocksDB.open(options, DATABASE_2, cfDescriptors, columnFamilyHandleList);
+                 final RocksDB db = RocksDB.open(options, generateDBName(), cfDescriptors, columnFamilyHandleList);
                  WriteBatch writeBatch = new WriteBatch()) {
                 try {
                     ColumnFamilyHandle columnFamily = db.createColumnFamily(new ColumnFamilyDescriptor(QUEUE_NAME.getBytes(), cfOpts));
@@ -120,7 +114,7 @@ public class RocksDBShould {
 
                     long head = byteToLong(db.get(indexColumnFamily, HEAD));
                     long tail = byteToLong(db.get(indexColumnFamily, TAIL));
-                    String value = ByteConversionHelper.bytesToString(db.get(columnFamily, KEY.getBytes()));
+                    String value = Bytes.bytesToString(db.get(columnFamily, KEY.getBytes()));
 
                     assertEquals(head, 2);
                     assertEquals(tail, 3);
@@ -143,11 +137,5 @@ public class RocksDBShould {
                 e.printStackTrace();
             }
         }
-    }
-
-    @After
-    public void tearDown() {
-        Utils.deleteDirectory(new File(DATABASE_1));
-        Utils.deleteDirectory(new File(DATABASE_2));
     }
 }
