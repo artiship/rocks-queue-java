@@ -22,18 +22,18 @@ public class RocksStoreShould extends RocksShould {
     }
 
     @Test(expected = RuntimeException.class) public void
-    when_options_directory_is_empty_should_throws_exception() {
+    when_create_store_using_options_with_empty_directory_should_throws_exception() {
         StoreOptions options = new StoreOptions.Builder().build();
         options.setDefaults();
         new RocksStore(options);
     }
 
     @Test public void
-    should_newly_created_queue_size_approximate_to_zero() {
+    when_create_a_new_queue_its_size_should_approximate_to_zero() {
         assertNotNull(queue);
-        assertThat(queue.getHeadIndex(), is(1L));
-        assertThat(queue.getTailIndex(), is(0L));
-        assertThat(queue.approximateSize(), is(0L));
+        assertEquals(queue.getHeadIndex(), 0);
+        assertEquals(queue.getTailIndex(),0);
+        assertEquals(queue.approximateSize(), 0);
     }
 
     @Test public void
@@ -47,7 +47,6 @@ public class RocksStoreShould extends RocksShould {
 
     @After public void
     destroy() {
-        queue.close();
         rocksStore.close();
     }
 }

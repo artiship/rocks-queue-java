@@ -35,7 +35,7 @@ public class RocksQueue {
         this.indexCfHandle = store.createColumnFamilyHandle(getIndexColumnFamilyName(queueName));
 
         this.tail.set(getIndexId(TAIL, 0));
-        this.head.set(getIndexId(HEAD, 1));
+        this.head.set(getIndexId(HEAD, 0));
 
         this.tailIterator = store.newIteratorCF(cfHandle);
     }
@@ -52,7 +52,7 @@ public class RocksQueue {
     }
 
     public long getSize() {
-        return tail.get() - head.get() + 1;
+        return tail.get() - head.get();
     }
 
     public long getHeadIndex() {
@@ -64,7 +64,7 @@ public class RocksQueue {
     }
 
     public long approximateSize() {
-        return getIndexId(TAIL, 0) - getIndexId(HEAD, 1) + 1;
+        return getIndexId(TAIL, 0) - getIndexId(HEAD, 0);
     }
 
     private long getIndexId(byte[] key, long defaultValue) {
@@ -95,7 +95,7 @@ public class RocksQueue {
     }
 
     /**
-     * Polling out the head of queue
+     * Get the head and remove it from queue
      * @return
      */
     public QueueItem dequeue() {
@@ -105,7 +105,7 @@ public class RocksQueue {
     }
 
     /**
-     * Get the head of queue, in case there are deleted tombstones,
+     * Get the head of queue, in case there will have many deleted tombstones,
      * the final return index maybe bigger than the startId.
      * @return
      */
@@ -114,18 +114,20 @@ public class RocksQueue {
             return null;
         }
 
-        log.debug("Seek to head from {}", head.get());
-        byte[] sid = Bytes.longToByte(head.get());
-        tailIterator.seek(sid);
+        //for the first time, if head is 0, seek from 1
+        long sid = head.get() + 1;
 
+        //seek to head
+        tailIterator.seek(Bytes.longToByte(sid));
+
+        //when dequeue happens faster than enqueue, the tail iterator would be exhausted,
+        //so we seek it again
         if(!tailIterator.isValid()) {
             return null;
         }
 
-        long id = Bytes.byteToLong(tailIterator.key());
-
         QueueItem item = new QueueItem();
-        item.setKey(id);
+        item.setKey(Bytes.byteToLong(tailIterator.key()));
         item.setValue(tailIterator.value());
 
         return item;
