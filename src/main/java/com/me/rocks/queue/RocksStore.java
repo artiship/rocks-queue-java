@@ -1,5 +1,6 @@
 package com.me.rocks.queue;
 
+import com.me.rocks.queue.jmx.RocksStoreMetrics;
 import com.me.rocks.queue.util.Bytes;
 import com.me.rocks.queue.util.Files;
 import com.me.rocks.queue.util.Strings;
@@ -15,7 +16,6 @@ import java.util.List;
 public class RocksStore {
     private static final Logger log = LoggerFactory.getLogger(RocksStore.class);
     private final String directory;
-    private final boolean useTailing;
     private final HashMap<String, RocksQueue> queues;
     private final DBOptions dbOptions;
     private final ColumnFamilyOptions cfOpts;
@@ -23,6 +23,7 @@ public class RocksStore {
     private final ReadOptions readOptions;
     private final WriteOptions writeOptions;
     private final RocksDB db;
+    private RocksStoreMetrics rocksStoreMetrics;
 
     static {
         RocksDB.loadLibrary();
@@ -38,7 +39,6 @@ public class RocksStore {
         }
 
         this.directory = options.getDirectory();
-        this.useTailing = !options.isDisableTailing();
         this.cfHandles = new ArrayList<ColumnFamilyHandle>();
         this.queues = new HashMap<String, RocksQueue>();
 
@@ -179,5 +179,9 @@ public class RocksStore {
 
     public void write(WriteBatch writeBatch) throws RocksDBException {
         db.write(this.writeOptions, writeBatch);
+    }
+
+    public void registerStatisticsListener(RocksStoreMetrics rocksStoreMetrics) {
+        this.rocksStoreMetrics = rocksStoreMetrics;
     }
 }

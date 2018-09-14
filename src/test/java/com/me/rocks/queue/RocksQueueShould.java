@@ -86,13 +86,13 @@ public class RocksQueueShould extends RocksShould {
         assertThat(queue.approximateSize(), is(2L));
 
         QueueItem consume = queue.consume();
-        assertEquals(consume.getKey(), id_1);
+        assertEquals(consume.getIndex(), id_1);
         log.info("Consumes value = {}", Bytes.bytesToString(consume.getValue()));
         assertArrayEquals(consume.getValue(), v1);
 
         //multiple times consumes will always return the head
         QueueItem consume2 = queue.consume();
-        assertEquals(consume2.getKey(), id_1);
+        assertEquals(consume2.getIndex(), id_1);
         assertArrayEquals(consume2.getValue(), v1);
 
         assertEquals(queue.getTailIndex(), 2);

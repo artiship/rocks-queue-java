@@ -4,15 +4,20 @@ import java.util.Arrays;
 
 public class QueueItem {
 
-    private long key;
+    private long index;
     private byte[] value;
 
-    public long getKey() {
-        return key;
+    public QueueItem(long index, byte[] value) {
+        this.index = index;
+        this.value = value;
     }
 
-    public void setKey(long key) {
-        this.key = key;
+    public long getIndex() {
+        return index;
+    }
+
+    public void setIndex(long index) {
+        this.index = index;
     }
 
     public byte[] getValue() {
@@ -26,7 +31,7 @@ public class QueueItem {
     @Override
     public String toString() {
         return "QueueItem{" +
-                "key=" + key +
+                "index=" + index +
                 ", value=" + Arrays.toString(value) +
                 '}';
     }
