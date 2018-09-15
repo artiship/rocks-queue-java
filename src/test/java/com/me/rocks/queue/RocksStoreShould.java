@@ -15,14 +15,14 @@ public class RocksStoreShould extends RocksShould {
 
     @Before public void
     setUp() {
-        options = new StoreOptions.Builder().setDirectory(generateDBName()).build();
+        options = new StoreOptions.Builder().setDatabase(generateDBName()).build();
         options.setDefaults();
         rocksStore = new RocksStore(options);
         queue = rocksStore.createQueue(generateQueueName());
     }
 
     @Test(expected = RuntimeException.class) public void
-    when_create_store_using_options_with_empty_directory_should_throws_exception() {
+    when_create_store_without_database_should_throws_exception() {
         StoreOptions options = new StoreOptions.Builder().build();
         options.setDefaults();
         new RocksStore(options);
@@ -38,10 +38,10 @@ public class RocksStoreShould extends RocksShould {
 
     @Test public void
     when_create_queue_by_the_same_name_should_always_return_the_same_queue() {
-        RocksQueue q1 = rocksStore.createQueue(generateQueueName());
-        RocksQueue q2 = rocksStore.createQueue(generateQueueName());
+        String name = generateQueueName();
+        RocksQueue q1 = rocksStore.createQueue(name);
+        RocksQueue q2 = rocksStore.createQueue(name);
 
-        assertEquals(queue, q1);
         assertEquals(q1, q2);
     }
 

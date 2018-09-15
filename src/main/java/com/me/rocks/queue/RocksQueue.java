@@ -1,6 +1,6 @@
 package com.me.rocks.queue;
 
-import com.me.rocks.queue.jmx.RocksQueueMetrics;
+import com.me.rocks.queue.jmx.RocksQueueMetric;
 import com.me.rocks.queue.util.Bytes;
 import org.rocksdb.ColumnFamilyHandle;
 import org.rocksdb.RocksDBException;
@@ -27,7 +27,7 @@ public class RocksQueue {
     private final ColumnFamilyHandle indexCfHandle;
     private final RocksIterator tailIterator;
     private final RocksStore store;
-    private final RocksQueueMetrics rocksQueueStatistics;
+    private final RocksQueueMetric rocksQueueMetric;
 
     public RocksQueue(final String queueName, final RocksStore store) {
         this.queueName = queueName;
@@ -41,8 +41,9 @@ public class RocksQueue {
 
         this.tailIterator = store.newIteratorCF(cfHandle);
 
-        rocksQueueStatistics = new RocksQueueMetrics(this);
-        rocksQueueStatistics.onInitialize();
+        this.rocksQueueMetric = new RocksQueueMetric(this, this.store.getDatabase());
+        this.rocksQueueMetric.register();
+        this.rocksQueueMetric.onInit();
     }
 
     private long getIndexId(byte[] key, long defaultValue) {
@@ -64,10 +65,10 @@ public class RocksQueue {
             writeBatch.merge(indexCfHandle, TAIL, ONE);
             store.write(writeBatch);
 
-            this.rocksQueueStatistics.onEnqueue(value.length);
+            this.rocksQueueMetric.onEnqueue(value.length);
         } catch (RocksDBException e) {
             tail.decrementAndGet();
-            log.error("Enqueue {} fails, {}", id, e);
+            log.error("Enqueue {} fails", id, e);
             return -1;
         }
 
@@ -83,7 +84,7 @@ public class RocksQueue {
         try {
             removeHead();
             if(item != null && item.getValue() != null) {
-                this.rocksQueueStatistics.onDequeue(item.getValue().length);
+                this.rocksQueueMetric.onDequeue(item.getValue().length);
             }
         } catch (RocksDBException e) {
             e.printStackTrace();
@@ -113,7 +114,7 @@ public class RocksQueue {
             return null;
         }
 
-        this.rocksQueueStatistics.onConsume();
+        this.rocksQueueMetric.onConsume();
 
         return new QueueItem(Bytes.byteToLong(tailIterator.key()), tailIterator.value());
     }
@@ -143,7 +144,7 @@ public class RocksQueue {
         indexCfHandle.close();
         tailIterator.close();
 
-        this.rocksQueueStatistics.onClose();
+        this.rocksQueueMetric.onClose();
     }
 
     private String getIndexColumnFamilyName(String queueName) {
@@ -175,5 +176,9 @@ public class RocksQueue {
 
     public String getQueueName() {
         return this.queueName;
+    }
+
+    public RocksQueueMetric getRocksQueueMetric() {
+        return this.rocksQueueMetric;
     }
 }

@@ -7,11 +7,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RocksShould {
     private static final Logger log = LoggerFactory.getLogger(RocksShould.class);
     private List<String> dbs = new ArrayList<>();
-    private int queue_index = 0;
+    private static AtomicInteger queue_index = new AtomicInteger(-1);
 
     protected String generateDBName() {
         String dbName = new StringBuilder()
@@ -31,12 +32,20 @@ public class RocksShould {
         String queueName = new StringBuilder()
                 .append("rocks_queue")
                 .append("_")
-                .append(queue_index)
+                .append(queue_index.incrementAndGet())
                 .toString();
 
         log.info("Generate a queue name {}", queueName);
 
         return queueName;
+    }
+
+    protected void waitAwhileFor(long mill) {
+        try {
+            Thread.sleep(mill);
+        } catch (InterruptedException e) {
+            log.warn("Thread wait failed", e);
+        }
     }
 
 

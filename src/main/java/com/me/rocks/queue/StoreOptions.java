@@ -1,5 +1,6 @@
 package com.me.rocks.queue;
 
+import com.me.rocks.queue.util.Strings;
 import org.rocksdb.CompressionType;
 
 public class StoreOptions {
@@ -15,9 +16,11 @@ public class StoreOptions {
     private boolean disableTailing;
     private boolean writeLogSync;
     private boolean isDebug;
+    private String database;
 
     private StoreOptions(Builder builder) {
         this.directory = builder.directory;
+        this.database = builder.database;
         this.writeBufferSize = builder.writeBufferSize;
         this.writeBufferNumber = builder.writeBufferNumber;
         this.memorySize = builder.memorySize;
@@ -32,6 +35,7 @@ public class StoreOptions {
     }
 
     public void setDefaults() {
+        if (this.memorySize <= 0) this.memorySize = 8 * 1024 * 1024;
         if (this.memorySize <= 0) this.memorySize = 8 * 1024 * 1024;
         if (this.fileSizeBase <= 0) this.fileSizeBase = 64 * 1024 * 1024;
         if (this.writeBufferSize <= 0) this.writeBufferSize = 64 * 1024 * 1024;
@@ -92,7 +96,12 @@ public class StoreOptions {
         return isDebug;
     }
 
+    public String getDatabase() {
+        return database;
+    }
+
     public static class Builder {
+        public String database;
         private String directory;
         private int writeBufferSize;
         private int writeBufferNumber;
@@ -108,6 +117,11 @@ public class StoreOptions {
 
         public StoreOptions build() {
             return new StoreOptions(this);
+        }
+
+        public Builder setDatabase(String database) {
+            this.database = database;
+            return this;
         }
 
         public Builder setDirectory(String directory) {

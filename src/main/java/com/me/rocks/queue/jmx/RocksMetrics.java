@@ -12,9 +12,6 @@ public abstract class RocksMetrics {
     private static final Logger log = LoggerFactory.getLogger(RocksMetrics.class);
     private ObjectName name;
 
-    protected RocksMetrics() {
-    }
-
     public void register() {
         try {
             this.name = new ObjectName(this.getObjectName());
@@ -40,7 +37,7 @@ public abstract class RocksMetrics {
 
     protected abstract String getObjectName();
 
-    protected long currentTimestamp() {
+    protected long getCurrentTimeMillis() {
         return System.currentTimeMillis();
     }
 }

@@ -5,9 +5,10 @@ import com.me.rocks.queue.RocksQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class RocksQueueMetrics extends RocksMetrics implements RocksQueueMetricMXBean {
+public class RocksQueueMetric extends RocksMetrics implements RocksQueueMetricMXBean {
 
     private final RocksQueue rocksQueue;
+    private final String database;
 
     private final AtomicBoolean isQueueCreated = new AtomicBoolean();
     private final AtomicBoolean isQueueClosed = new AtomicBoolean();
@@ -16,18 +17,18 @@ public class RocksQueueMetrics extends RocksMetrics implements RocksQueueMetricM
     private final AtomicLong timestampOfLastDequeue = new AtomicLong();
     private final AtomicLong queueAccumulateBytes = new AtomicLong();
 
-    public RocksQueueMetrics(RocksQueue rocksQueue) {
+    public RocksQueueMetric(RocksQueue rocksQueue, String database) {
         this.rocksQueue = rocksQueue;
-        rocksQueue.registerStatisticsListener(this);
+        this.database = database;
     }
 
     @Override
     protected String getObjectName() {
-        return new StringBuilder("rocks.queue:type=")
-                .append(this.getClass())
+        return new StringBuilder("rocks.queue:database=")
+                .append(this.database)
                 .append(",")
                 .append("queue=")
-                .append(getQueueName())
+                .append(rocksQueue.getQueueName())
                 .toString();
     }
 
@@ -42,66 +43,70 @@ public class RocksQueueMetrics extends RocksMetrics implements RocksQueueMetricM
     }
 
     @Override
-    public long getQueueAccumulateBytes() {
+    public long getAccumulateBytes() {
         return this.queueAccumulateBytes.get();
     }
 
     @Override
-    public long getQueueHeadIndex() {
+    public long getHeadIndex() {
         return rocksQueue.getHeadIndex();
     }
 
     @Override
-    public long getQueueTailIndex() {
+    public long getTailIndex() {
         return rocksQueue.getTailIndex();
     }
 
     @Override
-    public boolean getIsQueueCreated() {
+    public boolean getIsCreated() {
         return isQueueCreated.get();
     }
 
     @Override
-    public boolean getIsQueueClosed() {
+    public boolean getIsClosed() {
         return isQueueClosed.get();
     }
 
     @Override
-    public long getTimestampOfLastEqueue() {
-        return timestampOfLastEqueue.get();
+    public long getSecondsSinceLastEqueue() {
+        return timestampOfLastEqueue.get() == 0 ? 0 :
+                getCurrentTimeMillis() - timestampOfLastEqueue.get();
     }
 
     @Override
-    public long getTimestampOfLastConsume() {
-        return timestampOfLastConsume.get();
+    public long getSecondsSinceLastConsume() {
+        return timestampOfLastConsume.get() == 0 ? 0 :
+                getCurrentTimeMillis() - timestampOfLastConsume.get();
     }
 
     @Override
-    public long getTimestampOfLastDequeue() {
-        return timestampOfLastDequeue.get();
+    public long getSecondsSinceLastDequeue() {
+        return timestampOfLastDequeue.get() == 0 ? 0 :
+                getCurrentTimeMillis() - timestampOfLastDequeue.get();
     }
 
-    public void onInitialize() {
+    public void onInit() {
         this.isQueueCreated.set(true);
         this.isQueueClosed.set(false);
     }
 
     public void onClose() {
         this.isQueueClosed.set(true);
+        this.isQueueCreated.set(false);
     }
 
     public void onEnqueue(long size) {
-        this.timestampOfLastEqueue.set(currentTimestamp());
+        this.timestampOfLastEqueue.set(getCurrentTimeMillis());
         this.queueAccumulateBytes.addAndGet(size);
     }
 
     public void onDequeue(long size) {
-        this.timestampOfLastDequeue.set(currentTimestamp());
+        this.timestampOfLastDequeue.set(getCurrentTimeMillis());
         this.queueAccumulateBytes.addAndGet(-size);
     }
 
     public void onConsume() {
-        this.timestampOfLastConsume.set(currentTimestamp());
+        this.timestampOfLastConsume.set(getCurrentTimeMillis());
     }
 
     @Override
