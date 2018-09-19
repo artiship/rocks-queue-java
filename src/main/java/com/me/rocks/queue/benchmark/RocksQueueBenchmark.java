@@ -16,10 +16,10 @@ import org.slf4j.LoggerFactory;
 
 import static java.util.concurrent.TimeUnit.*;
 
-@BenchmarkMode(Mode.AverageTime)
+@BenchmarkMode(Mode.All)
 @OutputTimeUnit(NANOSECONDS)
-@Warmup(iterations = 5, time = 1, timeUnit = SECONDS)
-@Measurement(iterations = 20, time = 1, timeUnit = SECONDS)
+@Warmup(iterations = 5, time = 1, timeUnit = MICROSECONDS)
+@Measurement(iterations = 50, time = 1, timeUnit = MICROSECONDS)
 @Fork(1)
 @State(Scope.Benchmark)
 public class RocksQueueBenchmark {
@@ -34,7 +34,6 @@ public class RocksQueueBenchmark {
     public void setUp() {
         StoreOptions storeOptions = new StoreOptions.Builder()
                 .setDatabase(ROCKSDB_NAME)
-                .setDisableWAL(true)
                 .build();
         storeOptions.setDefaults();
 
@@ -43,11 +42,11 @@ public class RocksQueueBenchmark {
         bytes = Bytes.stringToBytes("this string is use for rocks queue benchmark testing");
 
         int times = 0;
-        while(times < 1000) {
+        while(times < 500) {
             queue.enqueue(bytes);
             times++;
-            log.info("prepare data enqueue {}", times);
         }
+        log.info("prepare data enqueue {} times", times);
     }
 
     @TearDown
