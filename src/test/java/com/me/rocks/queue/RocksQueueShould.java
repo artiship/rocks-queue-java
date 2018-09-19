@@ -7,6 +7,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
@@ -110,6 +115,30 @@ public class RocksQueueShould extends RocksShould {
     when_queue_is_empty_consume_should_return_null() {
         assertEquals(queue.getSize(), 0);
         assertNull(queue.consume());
+    }
+
+    @Test public void
+    should_dequeue_as_the_order_enqueue() {
+        List<Long> enqueueList = new ArrayList<>();
+        List<Long> dequeueList = new ArrayList<>();
+
+        LongStream.iterate(1, i -> i + 1)
+                .limit(20)
+                .forEach(i -> {
+                    enqueueList.add(i);
+                    queue.enqueue(Bytes.longToByte(i));
+                });
+
+        while(queue.getSize() > 0) {
+            QueueItem dequeue = queue.dequeue();
+            long val = Bytes.byteToLong(dequeue.getValue());
+            dequeueList.add(val);
+        }
+
+        log.info("enqueue list {}", enqueueList);
+        log.info("dequeue list {}", dequeueList);
+
+        assertArrayEquals(enqueueList.toArray(), dequeueList.toArray());
     }
 
     @After public void
