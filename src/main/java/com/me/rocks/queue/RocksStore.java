@@ -162,7 +162,7 @@ public class RocksStore {
     }
 
     public RocksQueue createQueue(final String queueName) {
-        if(Strings.nullOrEmpty(queueName)){
+        if(Strings.nullOrEmpty(queueName)) {
             throw new IllegalArgumentException("Create rocks queue name can't not be null or empty");
         }
 

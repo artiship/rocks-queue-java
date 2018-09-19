@@ -60,7 +60,7 @@ public class RocksQueue {
         long id = tail.incrementAndGet();
 
         try(final WriteBatch writeBatch = new WriteBatch()) {
-            byte[] indexId = Bytes.longToByte(id);
+            final byte[] indexId = Bytes.longToByte(id);
             writeBatch.put(cfHandle, indexId, value);
             writeBatch.merge(indexCfHandle, TAIL, ONE);
             store.write(writeBatch);
