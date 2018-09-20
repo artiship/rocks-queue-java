@@ -1,6 +1,5 @@
 package com.me.rocks.queue;
 
-import com.me.rocks.queue.util.Strings;
 import org.rocksdb.CompressionType;
 
 public class StoreOptions {
@@ -32,6 +31,10 @@ public class StoreOptions {
         this.disableTailing = builder.disableTailing;
         this.writeLogSync = builder.writeLogSync;
         this.isDebug = builder.isDebug;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public void setDefaults() {
@@ -119,66 +122,66 @@ public class StoreOptions {
             return new StoreOptions(this);
         }
 
-        public Builder setDatabase(String database) {
+        public Builder database(String database) {
             this.database = database;
             return this;
         }
 
-        public Builder setDirectory(String directory) {
+        public Builder directory(String directory) {
             this.directory = directory;
             return this;
         }
 
-        public Builder setWriteBufferSize(int writeBufferSize) {
+        public Builder writeBufferSize(int writeBufferSize) {
             this.writeBufferSize = writeBufferSize;
             return this;
         }
 
-        public Builder setWriteBufferNumber(int writeBufferNumber) {
+        public Builder writeBufferNumber(int writeBufferNumber) {
             this.writeBufferNumber = writeBufferNumber;
             return this;
         }
 
-        public Builder setMemorySize(int memorySize) {
+        public Builder memorySize(int memorySize) {
             this.memorySize = memorySize;
             return this;
         }
 
-        public Builder setFileSizeBase(long fileSizeBase) {
+        public Builder fileSizeBase(long fileSizeBase) {
             this.fileSizeBase = fileSizeBase;
             return this;
         }
 
-        public Builder setCompression(CompressionType compression) {
+        public Builder compression(CompressionType compression) {
             this.compression = compression;
             return this;
         }
 
-        public Builder setParallel(int parallel) {
+        public Builder parallel(int parallel) {
             this.parallel = parallel;
             return this;
         }
 
-        public Builder setDisableAutoCompaction(boolean disableAutoCompaction) {
+        public Builder disableAutoCompaction(boolean disableAutoCompaction) {
             this.disableAutoCompaction = disableAutoCompaction;
             return this;
         }
 
-        public Builder setDisableWAL(boolean disableWAL) {
+        public Builder disableWAL(boolean disableWAL) {
             this.disableWAL = disableWAL;
             return this;
         }
 
-        public Builder setDisableTailing(boolean disableTailing) {
+        public Builder disableTailing(boolean disableTailing) {
             this.disableTailing = disableTailing;
             return this;
         }
 
-        public Builder setWriteLogSync(boolean writeLogSync) {
+        public Builder writeLogSync(boolean writeLogSync) {
             this.writeLogSync = writeLogSync;
             return this;
         }
-        public Builder setDebug(boolean debug) {
+        public Builder debug(boolean debug) {
             isDebug = debug;
             return this;
         }

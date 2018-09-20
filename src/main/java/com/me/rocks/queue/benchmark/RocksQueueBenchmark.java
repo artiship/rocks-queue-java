@@ -32,8 +32,8 @@ public class RocksQueueBenchmark {
 
     @Setup(Level.Trial)
     public void setUp() {
-        StoreOptions storeOptions = new StoreOptions.Builder()
-                .setDatabase(ROCKSDB_NAME)
+        StoreOptions storeOptions = StoreOptions.builder()
+                .database(ROCKSDB_NAME)
                 .build();
         storeOptions.setDefaults();
 

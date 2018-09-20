@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
 import static org.hamcrest.core.Is.is;
@@ -24,7 +23,7 @@ public class RocksQueueShould extends RocksShould {
 
     @Before public void
     initialize() {
-        StoreOptions storeOptions = new StoreOptions.Builder().setDatabase(generateDBName()).build();
+        StoreOptions storeOptions = new StoreOptions.Builder().database(generateDBName()).build();
         storeOptions.setDefaults();
 
         rocksStore = new RocksStore(storeOptions);
@@ -123,7 +122,7 @@ public class RocksQueueShould extends RocksShould {
         List<Long> dequeueList = new ArrayList<>();
 
         LongStream.iterate(1, i -> i + 1)
-                .limit(20)
+                .limit(10)
                 .forEach(i -> {
                     enqueueList.add(i);
                     queue.enqueue(Bytes.longToByte(i));
