@@ -1,5 +1,6 @@
 package com.me.rocks.queue;
 
+import com.me.rocks.queue.exception.RocksQueueException;
 import com.me.rocks.queue.util.Bytes;
 import org.junit.After;
 import org.junit.Before;
@@ -39,7 +40,7 @@ public class RocksQueueShould extends RocksShould {
     }
 
     @Test public void
-    when_enqueue_bytes_should_increase_tail() {
+    when_enqueue_bytes_should_increase_tail() throws RocksQueueException {
         byte[] something = "something".getBytes();
 
         queue.enqueue(something);
@@ -49,7 +50,7 @@ public class RocksQueueShould extends RocksShould {
     }
 
     @Test public void
-    when_enqueue_dequeue_should_forward_head_and_tail() {
+    when_enqueue_dequeue_should_forward_head_and_tail() throws RocksQueueException {
         byte[] v1 = Bytes.stringToBytes("v1");
         byte[] v2 = Bytes.stringToBytes("v2");
 
@@ -80,7 +81,7 @@ public class RocksQueueShould extends RocksShould {
     }
 
     @Test public void
-    when_consume_queue_should_return_the_head() {
+    when_consume_queue_should_return_the_head() throws RocksQueueException {
         byte[] v1 = Bytes.stringToBytes("v1");
         byte[] v2 = Bytes.stringToBytes("v2");
 
@@ -105,7 +106,7 @@ public class RocksQueueShould extends RocksShould {
     }
 
     @Test public void
-    when_queue_is_empty_dequeue_should_return_null() {
+    when_queue_is_empty_dequeue_should_return_null() throws RocksQueueException {
         assertEquals(queue.getSize(), 0);
         assertNull(queue.dequeue());
     }
@@ -117,7 +118,7 @@ public class RocksQueueShould extends RocksShould {
     }
 
     @Test public void
-    should_dequeue_as_the_order_enqueue() {
+    should_dequeue_as_the_order_enqueue() throws RocksQueueException {
         List<Long> enqueueList = new ArrayList<>();
         List<Long> dequeueList = new ArrayList<>();
 
@@ -125,7 +126,11 @@ public class RocksQueueShould extends RocksShould {
                 .limit(10)
                 .forEach(i -> {
                     enqueueList.add(i);
-                    queue.enqueue(Bytes.longToByte(i));
+                    try {
+                        queue.enqueue(Bytes.longToByte(i));
+                    } catch (RocksQueueException e) {
+                        log.error("Initialize data error", e);
+                    }
                 });
 
         while(queue.getSize() > 0) {

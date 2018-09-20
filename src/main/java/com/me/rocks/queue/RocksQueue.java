@@ -1,5 +1,9 @@
 package com.me.rocks.queue;
 
+import com.me.rocks.queue.exception.RocksQueueDequeueException;
+import com.me.rocks.queue.exception.RocksQueueEnqueueException;
+import com.me.rocks.queue.exception.RocksQueueException;
+import com.me.rocks.queue.exception.RocksQueueRemoveHeadException;
 import com.me.rocks.queue.jmx.RocksQueueMetric;
 import com.me.rocks.queue.util.Bytes;
 import org.rocksdb.ColumnFamilyHandle;
@@ -56,7 +60,7 @@ public class RocksQueue {
         return Bytes.byteToLong(value);
     }
 
-    public long enqueue(byte[] value) {
+    public long enqueue(byte[] value) throws RocksQueueException {
         long id = tail.incrementAndGet();
 
         try(final WriteBatch writeBatch = new WriteBatch()) {
@@ -69,7 +73,7 @@ public class RocksQueue {
         } catch (RocksDBException e) {
             tail.decrementAndGet();
             log.error("Enqueue {} fails", id, e);
-            return -1;
+            throw new RocksQueueEnqueueException(store.getRockdbLocation(), e);
         }
 
         return id;
@@ -79,15 +83,15 @@ public class RocksQueue {
      * Get the head and remove it from queue
      * @return
      */
-    public QueueItem dequeue() {
+    public QueueItem dequeue() throws RocksQueueException {
         QueueItem item = consume();
         try {
             removeHead();
-            if(item != null && item.getValue() != null) {
-                this.rocksQueueMetric.onDequeue(item.getValue().length);
-            }
-        } catch (RocksDBException e) {
-            e.printStackTrace();
+        } catch (RocksQueueException e) {
+            throw new RocksQueueDequeueException(store.getRockdbLocation(), e);
+        }
+        if(item != null && item.getValue() != null) {
+            this.rocksQueueMetric.onDequeue(item.getValue().length);
         }
         return item;
     }
@@ -123,7 +127,7 @@ public class RocksQueue {
      * Remove the head from queue
      * @return
      */
-    public void removeHead() throws RocksDBException {
+    public void removeHead() throws RocksQueueException {
         if(this.getSize() <= 0) {
             return;
         }
@@ -135,7 +139,7 @@ public class RocksQueue {
             head.incrementAndGet();
         } catch (RocksDBException e) {
             log.error("Remove head {} failed.", head.get());
-            throw e;
+            throw new RocksQueueRemoveHeadException(store.getRockdbLocation(), e);
         }
     }
 

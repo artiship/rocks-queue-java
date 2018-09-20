@@ -4,6 +4,7 @@ import com.me.rocks.queue.RocksQueue;
 import com.me.rocks.queue.RocksShould;
 import com.me.rocks.queue.RocksStore;
 import com.me.rocks.queue.StoreOptions;
+import com.me.rocks.queue.exception.RocksQueueException;
 import com.me.rocks.queue.util.Bytes;
 import org.junit.After;
 import org.junit.Before;
@@ -62,7 +63,7 @@ public class RocksStoreMetricShould extends RocksShould {
 
 
     @Test public void
-    should_delay_rocks_db_disk_space_calculate_after_enqueue_dequeue() throws InterruptedException {
+    should_delay_rocks_db_disk_space_calculate_after_enqueue_dequeue() throws InterruptedException, RocksQueueException {
         RocksQueue queue = rocksStore.createQueue(generateQueueName());
         long interval = 1000;
         rocksStoreMetric.setDiskUsageCalculateInterval(interval);

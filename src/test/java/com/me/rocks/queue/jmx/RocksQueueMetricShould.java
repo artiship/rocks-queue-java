@@ -1,6 +1,7 @@
 package com.me.rocks.queue.jmx;
 
 import com.me.rocks.queue.*;
+import com.me.rocks.queue.exception.RocksQueueException;
 import com.me.rocks.queue.util.Bytes;
 import org.junit.After;
 import org.junit.Before;
@@ -74,7 +75,7 @@ public class RocksQueueMetricShould extends RocksShould {
     }
 
     @Test public void
-    after_operate_on_queue_should_update_metirc() {
+    after_operate_on_queue_should_update_metirc() throws RocksQueueException {
         queue.enqueue(Bytes.stringToBytes(ENQUEUE_DATA));
 
         assertEquals(rocksQueueMetric.getQueueSize(), 1);

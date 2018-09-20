@@ -3,6 +3,7 @@ package com.me.rocks.queue.benchmark;
 import com.me.rocks.queue.RocksQueue;
 import com.me.rocks.queue.RocksStore;
 import com.me.rocks.queue.StoreOptions;
+import com.me.rocks.queue.exception.RocksQueueException;
 import com.me.rocks.queue.util.Bytes;
 import com.me.rocks.queue.util.Files;
 import org.openjdk.jmh.annotations.*;
@@ -31,7 +32,7 @@ public class RocksQueueBenchmark {
     private final String QUEUE_NAME = "queue_name";
 
     @Setup(Level.Trial)
-    public void setUp() {
+    public void setUp() throws RocksQueueException {
         StoreOptions storeOptions = StoreOptions.builder()
                 .database(ROCKSDB_NAME)
                 .build();
@@ -58,12 +59,12 @@ public class RocksQueueBenchmark {
 
 
     @Benchmark
-    public void enqueue() {
+    public void enqueue() throws RocksQueueException {
         queue.enqueue(bytes);
     }
 
     @Benchmark
-    public void dequeue() {
+    public void dequeue() throws RocksQueueException {
         queue.dequeue();
     }
 
@@ -73,7 +74,7 @@ public class RocksQueueBenchmark {
     }
 
     @Benchmark
-    public void removeHead() throws RocksDBException {
+    public void removeHead() throws RocksDBException, RocksQueueException {
         queue.removeHead();
     }
 
