@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 
 import static java.util.concurrent.TimeUnit.*;
 
-@BenchmarkMode(Mode.All)
+@BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(NANOSECONDS)
-@Warmup(iterations = 5, time = 1, timeUnit = MICROSECONDS)
+@Warmup(iterations = 10, time = 1, timeUnit = MICROSECONDS)
 @Measurement(iterations = 50, time = 1, timeUnit = MICROSECONDS)
 @Fork(1)
 @State(Scope.Benchmark)
