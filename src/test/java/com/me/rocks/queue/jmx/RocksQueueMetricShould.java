@@ -33,7 +33,6 @@ public class RocksQueueMetricShould extends RocksShould {
     @Before public void
     init() {
         StoreOptions storeOptions = new StoreOptions.Builder().database(generateDBName()).build();
-        storeOptions.setDefaults();
         rocksStore = new RocksStore(storeOptions);
 
         queueName = this.generateQueueName();

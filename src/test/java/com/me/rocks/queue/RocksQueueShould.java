@@ -25,7 +25,6 @@ public class RocksQueueShould extends RocksShould {
     @Before public void
     initialize() {
         StoreOptions storeOptions = new StoreOptions.Builder().database(generateDBName()).build();
-        storeOptions.setDefaults();
 
         rocksStore = new RocksStore(storeOptions);
         queue = rocksStore.createQueue(generateQueueName());

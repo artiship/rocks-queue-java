@@ -16,7 +16,6 @@ public class RocksStoreShould extends RocksShould {
     @Before public void
     setUp() {
         options = StoreOptions.builder().database(generateDBName()).build();
-        options.setDefaults();
         rocksStore = new RocksStore(options);
         queue = rocksStore.createQueue(generateQueueName());
     }
@@ -24,7 +23,6 @@ public class RocksStoreShould extends RocksShould {
     @Test(expected = RuntimeException.class) public void
     when_create_store_without_database_should_throws_exception() {
         StoreOptions options = new StoreOptions.Builder().build();
-        options.setDefaults();
         new RocksStore(options);
     }
 

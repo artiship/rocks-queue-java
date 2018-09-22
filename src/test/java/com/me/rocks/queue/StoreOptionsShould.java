@@ -17,7 +17,6 @@ public class StoreOptionsShould {
     @Test public void
     should_set_default() {
         StoreOptions options = new StoreOptions.Builder().build();
-        options.setDefaults();
 
         assertEquals(options.getMemorySize(), 8 * 1024 * 1024);
         assertEquals(options.getFileSizeBase(), 64 * 1024 * 1024);

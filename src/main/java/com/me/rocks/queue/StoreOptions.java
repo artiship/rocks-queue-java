@@ -31,13 +31,7 @@ public class StoreOptions {
         this.disableTailing = builder.disableTailing;
         this.writeLogSync = builder.writeLogSync;
         this.isDebug = builder.isDebug;
-    }
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public void setDefaults() {
         if (this.memorySize <= 0) this.memorySize = 8 * 1024 * 1024;
         if (this.memorySize <= 0) this.memorySize = 8 * 1024 * 1024;
         if (this.fileSizeBase <= 0) this.fileSizeBase = 64 * 1024 * 1024;
@@ -49,6 +43,10 @@ public class StoreOptions {
         this.disableTailing = false;
         this.disableWAL = false;
         this.writeLogSync = true;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public String getDirectory() {

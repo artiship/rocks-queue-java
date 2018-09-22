@@ -36,7 +36,6 @@ public class RocksQueueBenchmark {
         StoreOptions storeOptions = StoreOptions.builder()
                 .database(ROCKSDB_NAME)
                 .build();
-        storeOptions.setDefaults();
 
         rocksStore = new RocksStore(storeOptions);
         queue = rocksStore.createQueue(QUEUE_NAME);

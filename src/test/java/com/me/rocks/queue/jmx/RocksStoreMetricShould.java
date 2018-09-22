@@ -29,7 +29,6 @@ public class RocksStoreMetricShould extends RocksShould {
     init() {
         database = generateDBName();
         StoreOptions storeOptions = new StoreOptions.Builder().database(database).build();
-        storeOptions.setDefaults();
         rocksStore = new RocksStore(storeOptions);
         rocksStoreMetric = rocksStore.getRocksStoreMetric();
     }
