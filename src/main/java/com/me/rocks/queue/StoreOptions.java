@@ -33,7 +33,6 @@ public class StoreOptions {
         this.isDebug = builder.isDebug;
 
         if (this.memorySize <= 0) this.memorySize = 8 * 1024 * 1024;
-        if (this.memorySize <= 0) this.memorySize = 8 * 1024 * 1024;
         if (this.fileSizeBase <= 0) this.fileSizeBase = 64 * 1024 * 1024;
         if (this.writeBufferSize <= 0) this.writeBufferSize = 64 * 1024 * 1024;
         if (this.writeBufferNumber <= 0) this.writeBufferNumber = 4;
