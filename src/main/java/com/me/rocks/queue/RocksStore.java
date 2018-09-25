@@ -233,7 +233,7 @@ public class RocksStore {
             return "./" + database;
         }
 
-        return directory + File.pathSeparator + database;
+        return new File(directory).getAbsolutePath() + File.separator + database;
     }
 
     public RocksStoreMetric getRocksStoreMetric() {
