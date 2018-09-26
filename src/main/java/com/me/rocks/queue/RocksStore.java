@@ -103,7 +103,7 @@ public class RocksStore {
 
         //load existing column families
         try {
-            List<byte[]> columnFamilies = RocksDB.listColumnFamilies(new Options(), this.database);
+            List<byte[]> columnFamilies = RocksDB.listColumnFamilies(new Options(), this.fullPath);
             log.debug("Load existing column families {}", columnFamilies.stream().map(cf -> Bytes.bytesToString(cf)).collect(toList()));
 
             columnFamilies.forEach( cf -> cfDescriptors.add(new ColumnFamilyDescriptor(cf, cfOpts)));
