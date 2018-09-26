@@ -20,6 +20,7 @@ public class RocksStore {
     private static final Logger log = LoggerFactory.getLogger(RocksStore.class);
     private final String database;
     private final String directory;
+    private final String fullPath;
     private final HashMap<String, RocksQueue> queues;
     private final DBOptions dbOptions;
     private final ColumnFamilyOptions cfOpts;
@@ -29,6 +30,7 @@ public class RocksStore {
     private final RocksDB db;
     private final RocksStoreMetric rocksStoreMetric;
     private final Map<String, ColumnFamilyHandle> columnFamilyHandleMap = new HashMap<>();
+
 
     static {
         RocksDB.loadLibrary();
@@ -45,6 +47,7 @@ public class RocksStore {
 
         this.directory = options.getDirectory();
         this.database = options.getDatabase();
+        this.fullPath = getFullPath(directory, database);
         this.cfHandles = new ArrayList<ColumnFamilyHandle>();
         this.queues = new HashMap<String, RocksQueue>();
 
@@ -113,15 +116,15 @@ public class RocksStore {
         }
 
         try {
-            rocksDB = RocksDB.open(dbOptions, database, cfDescriptors, columnFamilyHandleList);
+            rocksDB = RocksDB.open(dbOptions, fullPath, cfDescriptors, columnFamilyHandleList);
         } catch (RocksDBException e) {
-            log.error("Failed to open rocks database, try to remove rocks db database {}", database, e);
-            Files.deleteDirectory(database);
+            log.error("Failed to open rocks database, try to remove rocks db database {}", fullPath, e);
+            Files.deleteDirectory(fullPath);
             try {
-                rocksDB = RocksDB.open(dbOptions, database, cfDescriptors, columnFamilyHandleList);
-                log.info("Recreate rocks db at {} again from scratch", database);
+                rocksDB = RocksDB.open(dbOptions, fullPath, cfDescriptors, columnFamilyHandleList);
+                log.info("Recreate rocks db at {} again from scratch", fullPath);
             } catch (RocksDBException e1) {
-                log.error("Failed to create rocks db again at {}", database, e);
+                log.error("Failed to create rocks db again at {}", fullPath, e);
                 throw new RuntimeException("Failed to create rocks db again.");
             }
         }
@@ -229,12 +232,17 @@ public class RocksStore {
     }
 
     public String getRockdbLocation() {
-        if(Strings.nullOrEmpty(directory)) {
-            return "./" + database;
+        return this.fullPath;
+    }
+
+    private String getFullPath(String base, String db) {
+        if(Strings.nullOrEmpty(base)) {
+            return "./" + db;
         }
 
-        return new File(directory).getAbsolutePath() + File.separator + database;
+        return new File(base).getAbsolutePath() + File.separator + db;
     }
+
 
     public RocksStoreMetric getRocksStoreMetric() {
         return this.rocksStoreMetric;
