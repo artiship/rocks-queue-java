@@ -120,16 +120,7 @@ public class RocksQueueShould extends RocksShould {
         List<Long> enqueueList = new ArrayList<>();
         List<Long> dequeueList = new ArrayList<>();
 
-        LongStream.iterate(1, i -> i + 1)
-                .limit(10)
-                .forEach(i -> {
-                    enqueueList.add(i);
-                    try {
-                        queue.enqueue(Bytes.longToByte(i));
-                    } catch (RocksQueueException e) {
-                        log.error("Initialize data error", e);
-                    }
-                });
+        mockEnqueueTimes(enqueueList, 10);
 
         while(queue.getSize() > 0) {
             QueueItem dequeue = queue.dequeue();
@@ -148,16 +139,7 @@ public class RocksQueueShould extends RocksShould {
         List<Long> enqueueList = new ArrayList<>();
         List<Long> dequeueList = new ArrayList<>();
 
-        LongStream.iterate(1, i -> i + 1)
-                .limit(10)
-                .forEach(i -> {
-                    enqueueList.add(i);
-                    try {
-                        queue.enqueue(Bytes.longToByte(i));
-                    } catch (RocksQueueException e) {
-                        log.error("Initialize data error", e);
-                    }
-                });
+        mockEnqueueTimes(enqueueList, 10);
 
         while(queue.getSize() > 0) {
             QueueItem dequeue = queue.consume();
@@ -170,6 +152,19 @@ public class RocksQueueShould extends RocksShould {
         log.info("consume list {}", dequeueList);
 
         assertArrayEquals(enqueueList.toArray(), dequeueList.toArray());
+    }
+
+    private void mockEnqueueTimes(List<Long> enqueueList, int limit) {
+        LongStream.iterate(1, i -> i + 1)
+                .limit(limit)
+                .forEach(i -> {
+                    enqueueList.add(i);
+                    try {
+                        queue.enqueue(Bytes.longToByte(i));
+                    } catch (RocksQueueException e) {
+                        log.error("Initialize data error", e);
+                    }
+                });
     }
 
     @After public void
