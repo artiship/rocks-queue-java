@@ -109,8 +109,9 @@ public class RocksQueue {
         //for the first time, if head is 0, seek from 1
         long sid = head.get() + 1;
 
-        //seek to head
-        tailIterator.seek(Bytes.longToByte(sid));
+        if(!tailIterator.isValid()) {
+            tailIterator.seek(Bytes.longToByte(sid));
+        }
 
         //when dequeue happens faster than enqueue, the tail iterator would be exhausted,
         //so we seek it again
@@ -137,6 +138,7 @@ public class RocksQueue {
             writeBatch.merge(indexCfHandle, HEAD, ONE);
             store.write(writeBatch);
             head.incrementAndGet();
+            tailIterator.next();
         } catch (RocksDBException e) {
             log.error("Remove head {} failed.", head.get());
             throw new RocksQueueRemoveHeadException(store.getRockdbLocation(), e);

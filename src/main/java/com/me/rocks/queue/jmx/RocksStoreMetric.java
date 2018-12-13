@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class RocksStoreMetric extends RocksMetrics implements RocksStoreMetricMXBean {
-    private static long diskUsageCalculateInterval = 2 * 60 * 1000;
+    private static long diskUsageCalculateInterval = 30 * 1000;
     private final AtomicLong lastDiskUsageCalculateTimestamp  = new AtomicLong();
     private final AtomicLong rocksDBDiskUsageInBytes = new AtomicLong();
     private final AtomicBoolean isOpen = new AtomicBoolean();
@@ -31,7 +31,7 @@ public class RocksStoreMetric extends RocksMetrics implements RocksStoreMetricMX
 
     @Override
     public long getRocksDBDiskUsageInBytes() {
-        String dbLocation = this.rocksStore.getDatabase();
+        String dbLocation = this.rocksStore.getRockdbLocation();
 
         if(Strings.nullOrEmpty(dbLocation)) {
             rocksDBDiskUsageInBytes.set(0);

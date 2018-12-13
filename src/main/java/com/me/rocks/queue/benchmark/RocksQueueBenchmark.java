@@ -15,12 +15,13 @@ import org.rocksdb.RocksDBException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.concurrent.TimeUnit.*;
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(NANOSECONDS)
 @Warmup(iterations = 10, time = 1, timeUnit = MICROSECONDS)
-@Measurement(iterations = 50, time = 1, timeUnit = MICROSECONDS)
+@Measurement(iterations = 500, time = 1, timeUnit = MICROSECONDS)
 @Fork(1)
 @State(Scope.Benchmark)
 public class RocksQueueBenchmark {
@@ -42,7 +43,7 @@ public class RocksQueueBenchmark {
         bytes = Bytes.stringToBytes("this string is use for rocks queue benchmark testing");
 
         int times = 0;
-        while(times < 500) {
+        while(times < 5000) {
             queue.enqueue(bytes);
             times++;
         }

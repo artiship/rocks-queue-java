@@ -68,7 +68,7 @@ public class RocksQueueMetric extends RocksMetrics implements RocksQueueMetricMX
     }
 
     @Override
-    public long getSecondsSinceLastEqueue() {
+    public long getSecondsSinceLastEnqueue() {
         return timestampOfLastEqueue.get() == 0 ? 0 :
                 getCurrentTimeMillis() - timestampOfLastEqueue.get();
     }

@@ -9,7 +9,7 @@ public interface RocksQueueMetricMXBean {
     boolean getIsCreated();
     boolean getIsClosed();
 
-    long getSecondsSinceLastEqueue();
+    long getSecondsSinceLastEnqueue();
     long getSecondsSinceLastConsume();
     long getSecondsSinceLastDequeue();
     void reset();

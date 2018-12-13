@@ -31,7 +31,6 @@ public class RocksStore {
     private final RocksStoreMetric rocksStoreMetric;
     private final Map<String, ColumnFamilyHandle> columnFamilyHandleMap = new HashMap<>();
 
-
     static {
         RocksDB.loadLibrary();
     }
@@ -47,9 +46,9 @@ public class RocksStore {
 
         this.directory = options.getDirectory();
         this.database = options.getDatabase();
-        this.fullPath = getFullPath(directory, database);
-        this.cfHandles = new ArrayList<ColumnFamilyHandle>();
-        this.queues = new HashMap<String, RocksQueue>();
+        this.fullPath = generateFullDBPath(directory, database);
+        this.cfHandles = new ArrayList<>();
+        this.queues = new HashMap<>();
 
         this.readOptions = new ReadOptions()
                 .setFillCache(false)
@@ -58,16 +57,20 @@ public class RocksStore {
                 .setDisableWAL(options.isDisableWAL())
                 .setSync(options.isWriteLogSync());
 
-        Files.mkdirIfNotExists(this.getRockdbLocation());
+        Files.mkdirIfNotExists(this.fullPath);
 
         this.dbOptions = new DBOptions()
                 .setCreateIfMissing(true)
                 .setIncreaseParallelism(options.getParallel())
                 .setCreateMissingColumnFamilies(true)
+                .setMaxTotalWalSize(64 * 1024 * 1024)
+                .setKeepLogFileNum(10)
                 .setMaxOpenFiles(-1);
 
         final BlockBasedTableConfig blockBasedTableConfig = new BlockBasedTableConfig()
                 .setBlockCacheSize(options.getMemorySize())
+                .setCacheIndexAndFilterBlocks(true) //By putting index and filter blocks in block cache to control memory usage
+                .setPinL0FilterAndIndexBlocksInCache(true) //Tune for the performance impact
                 .setFilter(new BloomFilter(10));
 
         this.cfOpts = new ColumnFamilyOptions()
@@ -235,14 +238,15 @@ public class RocksStore {
         return this.fullPath;
     }
 
-    private String getFullPath(String base, String db) {
+    private String generateFullDBPath(String base, String database) {
         if(Strings.nullOrEmpty(base)) {
-            return "./" + db;
+            return "./" + database;
         }
 
-        return new File(base).getAbsolutePath() + File.separator + db;
-    }
+        File baseFile = new File(directory);
 
+        return baseFile.getAbsolutePath() + File.separator + database;
+    }
 
     public RocksStoreMetric getRocksStoreMetric() {
         return this.rocksStoreMetric;

@@ -14,7 +14,6 @@ import java.util.stream.LongStream;
 
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 public class RocksQueueShould extends RocksShould {
     private static final Logger log = LoggerFactory.getLogger(RocksQueueShould.class);
@@ -140,6 +139,35 @@ public class RocksQueueShould extends RocksShould {
 
         log.info("enqueue list {}", enqueueList);
         log.info("dequeue list {}", dequeueList);
+
+        assertArrayEquals(enqueueList.toArray(), dequeueList.toArray());
+    }
+
+    @Test public void
+    should_consume_as_the_order_enqueue() throws RocksQueueException {
+        List<Long> enqueueList = new ArrayList<>();
+        List<Long> dequeueList = new ArrayList<>();
+
+        LongStream.iterate(1, i -> i + 1)
+                .limit(10)
+                .forEach(i -> {
+                    enqueueList.add(i);
+                    try {
+                        queue.enqueue(Bytes.longToByte(i));
+                    } catch (RocksQueueException e) {
+                        log.error("Initialize data error", e);
+                    }
+                });
+
+        while(queue.getSize() > 0) {
+            QueueItem dequeue = queue.consume();
+            long val = Bytes.byteToLong(dequeue.getValue());
+            dequeueList.add(val);
+            queue.removeHead();
+        }
+
+        log.info("enqueue list {}", enqueueList);
+        log.info("consume list {}", dequeueList);
 
         assertArrayEquals(enqueueList.toArray(), dequeueList.toArray());
     }

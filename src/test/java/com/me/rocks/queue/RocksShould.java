@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RocksShould {
-    private static final Logger log = LoggerFactory.getLogger(RocksShould.class);
+    protected static final Logger log = LoggerFactory.getLogger(RocksShould.class);
     private List<String> dbs = new ArrayList<>();
     private static AtomicInteger queue_index = new AtomicInteger(-1);
 

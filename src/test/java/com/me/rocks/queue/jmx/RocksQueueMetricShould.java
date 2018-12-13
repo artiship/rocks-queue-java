@@ -62,7 +62,7 @@ public class RocksQueueMetricShould extends RocksShould {
         assertEquals(rocksQueueMetric.getIsClosed(), false);
         assertEquals(rocksQueueMetric.getSecondsSinceLastConsume(), 0);
         assertEquals(rocksQueueMetric.getSecondsSinceLastDequeue(), 0);
-        assertEquals(rocksQueueMetric.getSecondsSinceLastEqueue(), 0);
+        assertEquals(rocksQueueMetric.getSecondsSinceLastEnqueue(), 0);
     }
 
     @Test public void
@@ -84,8 +84,8 @@ public class RocksQueueMetricShould extends RocksShould {
 
         waitAwhileFor(MILLSECONDS_100);
 
-        assertThat(rocksQueueMetric.getSecondsSinceLastEqueue(), greaterThanOrEqualTo(MILLSECONDS_100));
-        log.info("seconds since last enqueue is {}", rocksQueueMetric.getSecondsSinceLastEqueue());
+        assertThat(rocksQueueMetric.getSecondsSinceLastEnqueue(), greaterThanOrEqualTo(MILLSECONDS_100));
+        log.info("seconds since last enqueue is {}", rocksQueueMetric.getSecondsSinceLastEnqueue());
 
         queue.consume();
         waitAwhileFor(MILLSECONDS_100);
@@ -93,7 +93,7 @@ public class RocksQueueMetricShould extends RocksShould {
 
         QueueItem dequeue = queue.dequeue();
         waitAwhileFor(MILLSECONDS_100);
-        assertThat(rocksQueueMetric.getSecondsSinceLastEqueue(), greaterThanOrEqualTo(MILLSECONDS_100));
+        assertThat(rocksQueueMetric.getSecondsSinceLastEnqueue(), greaterThanOrEqualTo(MILLSECONDS_100));
 
         assertEquals(rocksQueueMetric.getQueueSize(), 0);
         assertEquals(rocksQueueMetric.getAccumulateBytes(), 0);

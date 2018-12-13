@@ -1,7 +1,6 @@
 package com.me.rocks.queue;
 
 import org.junit.Test;
-import org.rocksdb.CompressionType;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
