@@ -2,8 +2,8 @@
 
 RocksDB is an embedded KV database designed with write-ahead-log and log-structured-merge-tree. This project is a java version implementing persistent queue on RocksDB. It's very suitable for: 
 
-- Applications want to persistent data on local disk for preventing data lose in memory if crash.
-- Client and server speed are not match, but usual in memory queue are bounded, `rocks-queue` provides unlimited storage capacity.
+- Applications want to persistent data on local disk for preventing data loss in memory if a crash.
+- Client and server speed do not match, but usually in memory queue are bounded, `rocks-queue` provides unlimited storage capacity.
 
 ## How to implement queue on a KV store?
 
