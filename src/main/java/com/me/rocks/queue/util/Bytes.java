@@ -13,10 +13,8 @@ public class Bytes {
      * @return platform-specific long value.
      */
     public static byte[] longToByte(long value) {
-        ByteBuffer longBuffer = ByteBuffer.allocate(8)
-                .order(ByteOrder.nativeOrder());
-        longBuffer.clear();
-        longBuffer.putLong(value);
+        ByteBuffer longBuffer = ByteBuffer.allocate(8);
+        longBuffer.putLong(0, value);
         return longBuffer.array();
     }
 
@@ -30,8 +28,7 @@ public class Bytes {
      */
     public static long byteToLong(byte[] data) {
         if (data != null) {
-            ByteBuffer longBuffer = ByteBuffer.allocate(8)
-                    .order(ByteOrder.nativeOrder());
+            ByteBuffer longBuffer = ByteBuffer.allocate(8);
             longBuffer.put(data, 0, 8);
             longBuffer.flip();
             return longBuffer.getLong();
